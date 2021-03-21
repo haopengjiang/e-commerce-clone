@@ -9,6 +9,7 @@ function SigninScreen(props) {
   const [password, setPassword] = useState('');
   const userSignin = useSelector(state => state.userSignin);
   const { loading, userInfo, error } = userSignin;
+  console.log(error,'error');
   const dispatch = useDispatch();
   const redirect = props.location.search ? props.location.search.split("=")[1] : '/';
   useEffect(() => {
@@ -33,7 +34,7 @@ function SigninScreen(props) {
         </li>
         <li>
           {loading && <div>Loading...</div>}
-          {error && <div>{error}</div>}
+          {error && <div>Invalid Email or Password.</div>}
         </li>
         <li>
           <label htmlFor="email">

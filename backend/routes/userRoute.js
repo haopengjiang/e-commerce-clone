@@ -1,8 +1,11 @@
 import express from 'express';
 import User from '../models/userModel';
 import { getToken, isAuth } from '../util';
+import bcrypt from 'bcrypt';
+
 
 const router = express.Router();
+const saltRounds = 10;
 
 router.put('/:id', isAuth, async (req, res) => {
   const userId = req.params.id;
@@ -25,17 +28,18 @@ router.put('/:id', isAuth, async (req, res) => {
 });
 
 router.post('/signin', async (req, res) => {
-  const signinUser = await User.findOne({
-    email: req.body.email,
-    password: req.body.password,
-  });
-  if (signinUser) {
+  const user = await User.findOne({email: req.body.email});
+  if (user) {
+    const isValid = await bcrypt.compare(req.body.password, user.password)
+      if (!isValid) {
+        return res.status(401).send({ message: 'Invalid Email or Password.' });
+      }
     res.send({
-      _id: signinUser.id,
-      name: signinUser.name,
-      email: signinUser.email,
-      isAdmin: signinUser.isAdmin,
-      token: getToken(signinUser),
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      token: getToken(user),
     });
   } else {
     res.status(401).send({ message: 'Invalid Email or Password.' });
@@ -43,10 +47,12 @@ router.post('/signin', async (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
+  const salt = await bcrypt.genSalt(saltRounds);
+  const hashedPassword = await bcrypt.hash(req.body.password, salt);
   const user = new User({
     name: req.body.name,
     email: req.body.email,
-    password: req.body.password,
+    password: hashedPassword,
   });
   const newUser = await user.save();
   if (newUser) {
@@ -65,8 +71,8 @@ router.post('/register', async (req, res) => {
 router.get('/createadmin', async (req, res) => {
   try {
     const user = new User({
-      name: 'Basir',
-      email: 'admin@example.com',
+      name: 'Haopeng',
+      email: 'haopengjiang4work@gmail.com',
       password: '1234',
       isAdmin: true,
     });
